@@ -2,7 +2,7 @@ import macros
 
 type
   InstruQueue* = object
-    prev: ptr InstruQueue
+    previous: ptr InstruQueue
     next: ptr InstruQueue
 
 proc isEmpty*(h: var InstruQueue): bool =
@@ -10,39 +10,39 @@ proc isEmpty*(h: var InstruQueue): bool =
 
 proc initEmpty*(h: var InstruQueue) =
   h.next = h.addr
-  h.prev = h.addr
+  h.previous = h.addr
 
 proc insertHead*(h, n: var InstruQueue) =
   n.next = h.next
-  n.prev = h.addr
-  n.next.prev = n.addr
+  n.previous = h.addr
+  n.next.previous = n.addr
   h.next = n.addr
 
 proc insertTail*(h, n: var InstruQueue) =
   n.next = h.addr
-  n.prev = h.prev
-  n.prev.next = n.addr
-  h.prev = n.addr
+  n.previous = h.previous
+  n.previous.next = n.addr
+  h.previous = n.addr
 
-proc merge*(h, n: var InstruQueue) =
-  h.prev.next = n.next
-  n.next.prev = h.prev
-  h.prev = n.prev
-  h.prev.next = h.addr
+proc mergeInto*(h, n: var InstruQueue) =
+  h.previous.next = n.next
+  n.next.previous = h.previous
+  h.previous = n.previous
+  h.previous.next = h.addr
 
   initEmpty(n)
 
-proc detach*(h: var InstruQueue) =
-  h.prev.next = h.next
-  h.next.prev = h.prev
+proc remove*(h: var InstruQueue) =
+  h.previous.next = h.next
+  h.next.previous = h.previous
 
-iterator items*(h: var InstruQueue): var InstruQueue =
+iterator items*(h: var InstruQueue): ptr InstruQueue =
   let q = h.addr
   var i = q.next
 
   while i != q:
     let n = i.next
-    yield i[]
+    yield i
     i = n
 
 template data*[T](h: var InstruQueue, a: typedesc[T], b: untyped): ptr T =

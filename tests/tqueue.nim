@@ -32,7 +32,7 @@ test "isEmpty":
 
   check not q.isEmpty
 
-  detach(job.instruQueue)
+  remove(job.instruQueue)
   dealloc(job)
 
   check q.isEmpty
@@ -59,15 +59,15 @@ test "items":
         n = n + 1
 
   for i in q:
-    detach(i)
+    remove(i[])
 
-    var j = data(i, Job, instruQueue)
+    var j = data(i[], Job, instruQueue)
     j.executeJob()
     dealloc(j)
 
   check n == num
 
-test "merge":
+test "mergeInto":
   var n = 0
   
   var q1 = InstruQueue()
@@ -90,13 +90,13 @@ test "merge":
       newJob():
         n = n - 3
 
-  merge(q1, q2)
-  merge(q1, q3)
+  mergeInto(q1, q2)
+  mergeInto(q1, q3)
 
   for i in q1:
-    detach(i)
+    remove(i[])
 
-    var j = data(i, Job, instruQueue)
+    var j = data(i[], Job, instruQueue)
     j.executeJob()
     dealloc(j)
 
