@@ -94,3 +94,29 @@ test "orderly":
     min = j.priority
 
     dealloc(j)
+
+test "len":
+  var h = InstruHeap()
+  initHeap(h)
+
+  check h.len == 0
+
+  var len = 0
+  var r = initRand()
+
+  for i in countup(1, 1000):
+    if len > 0 and r.rand(1) > 0:
+      dec len
+
+      var n = dequeue(h)
+      let j = data(n[], SchedJob, instruHeap)
+      dealloc(j)
+    else:
+      inc len
+
+      let job = newJob(i):
+        discard "body"
+
+      insertJob(h, job)
+
+    check h.len == len

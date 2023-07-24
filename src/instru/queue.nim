@@ -2,8 +2,8 @@ import macros
 
 type
   InstruQueue* = object
-    previous: ptr InstruQueue
-    next: ptr InstruQueue
+    previous*: ptr InstruQueue
+    next*: ptr InstruQueue
 
 proc isEmpty*(h: var InstruQueue): bool =
   h.addr == h.next

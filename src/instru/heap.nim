@@ -2,22 +2,22 @@ import macros
 
 type
   InstruHeap* = object
-    nelts: uint32
-    top: ptr InstruHeapNode
+    len*: int
+    top*: ptr InstruHeapNode
     lessThan: proc (a, b: var InstruHeapNode): bool
 
   InstruHeapNode* = object
-    left: ptr InstruHeapNode
-    right: ptr InstruHeapNode
-    parent: ptr InstruHeapNode
+    left*: ptr InstruHeapNode
+    right*: ptr InstruHeapNode
+    parent*: ptr InstruHeapNode
 
 proc isEmpty*(h: var InstruHeap): bool =
   h.top == nil
 
 proc initEmpty*(h: var InstruHeap, lessThan: proc (a,
     b: var InstruHeapNode): bool) =
+  h.len = 0
   h.top = nil
-  h.nelts = 0
   h.lessThan = lessThan
 
 proc initEmpty*(h: var InstruHeapNode) =
@@ -52,12 +52,12 @@ proc swap(h: var InstruHeap, a, b: var InstruHeapNode) =
   else:
     b.parent.right = b.addr
 
-proc traverse(h: var InstruHeap, n: uint32): (ptr ptr InstruHeapNode,
+proc traverse*(h: var InstruHeap, n: int): (ptr ptr InstruHeapNode,
     ptr ptr InstruHeapNode) =
   var k = uint32(0)
   var path = uint32(0)
 
-  var num = n
+  var num = uint32(n)
   while num >= 2:
     path = (path shl 1) or (num and 0x1)
     num = num shr 1
@@ -79,29 +79,31 @@ proc traverse(h: var InstruHeap, n: uint32): (ptr ptr InstruHeapNode,
   (p, c)
 
 proc shiftUp(h: var InstruHeap, n: var InstruHeapNode) =
-  while n.parent != nil and h.lessThan(n, n.parent[]):
+  let lessThan = h.lessThan
+
+  while n.parent != nil and lessThan(n, n.parent[]):
     swap(h, n.parent[], n)
 
 proc insert*(h: var InstruHeap, n: var InstruHeapNode) =
   reset(n)
 
-  let (p, c) = traverse(h, succ h.nelts)
+  let (p, c) = traverse(h, succ h.len)
 
   n.parent = p[]
   c[] = n.addr
 
-  inc h.nelts
+  inc h.len
 
   shiftUp(h, n)
 
 proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
   var c = block:
-    var (_, c) = traverse(h, h.nelts)
+    var (_, c) = traverse(h, h.len)
     var result = c[]
     c[] = nil
     result
 
-  dec h.nelts
+  dec h.len
 
   if c == n.addr:
     if c == h.top:
@@ -123,13 +125,15 @@ proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
   else:
     n.parent.right = c
 
+  let lessThan = h.lessThan
+
   while true:
     var s = c
 
-    if c.left != nil and h.lessThan(c.left[], s[]):
+    if c.left != nil and lessThan(c.left[], s[]):
       s = c.left
 
-    if c.right != nil and h.lessThan(c.right[], s[]):
+    if c.right != nil and lessThan(c.right[], s[]):
       s = c.right
 
     if s != c:
