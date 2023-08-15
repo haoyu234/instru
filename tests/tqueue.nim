@@ -2,6 +2,7 @@
 
 import unittest
 
+import std/sugar
 import instru/queue
 import instru/macros
 
@@ -101,3 +102,42 @@ test "mergeInto":
     dealloc(j)
 
   check n == 145
+
+test "popFront/popBack":
+  var q = InstruQueue()
+  initEmpty(q)
+
+  var s = 0
+
+  for i in 1..3:
+    insertJob(q):
+      capture i:
+        newJob():
+          s = i
+
+  # popBack
+
+  var n = popBack(q)
+  check n != nil
+
+  var j = data(n[], Job, instruQueue)
+  j.executeJob()
+  dealloc(j)
+
+  check s == 3
+
+  # popFront
+
+  n = popFront(q)
+  check n != nil
+
+  j = data(n[], Job, instruQueue)
+  j.executeJob()
+  dealloc(j)
+
+  check s == 1
+
+  # There's one element left.
+
+  check popFront(q) != nil
+  check popFront(q) == nil

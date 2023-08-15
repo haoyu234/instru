@@ -36,8 +36,31 @@ proc remove*(h: var InstruQueue) =
   h.previous.next = h.next
   h.next.previous = h.previous
 
+proc popFront*(h: var InstruQueue): ptr InstruQueue =
+  if not isEmpty(h):
+    let n = h.next
+    remove(n[])
+    return n
+  return nil
+
+proc popBack*(h: var InstruQueue): ptr InstruQueue =
+  if not isEmpty(h):
+    let n = h.previous
+    remove(n[])
+    return n
+  return nil
+
 iterator items*(h: var InstruQueue): ptr InstruQueue =
   let q = h.addr
+  var i = q.next
+
+  while i != q:
+    let n = i.next
+    yield i
+    i = n
+
+iterator items*(h: InstruQueue): ptr InstruQueue =
+  let q = h.previous.next
   var i = q.next
 
   while i != q:
