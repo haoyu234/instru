@@ -61,7 +61,7 @@ test "isEmpty":
     for i in countup(1, n):
       check not h.isEmpty
 
-      var p = dequeue(h)
+      var p = popFront(h)
       let j = data(p[], SchedJob, instruHeap)
       dealloc(j)
 
@@ -87,7 +87,7 @@ test "orderly":
   var min = 0
 
   for i in countup(1, n):
-    var n = dequeue(h)
+    var n = popFront(h)
     let j = data(n[], SchedJob, instruHeap)
 
     check min <= j.priority
@@ -108,7 +108,7 @@ test "len":
     if len > 0 and r.rand(1) > 0:
       dec len
 
-      var n = dequeue(h)
+      var n = popFront(h)
       let j = data(n[], SchedJob, instruHeap)
       dealloc(j)
     else:

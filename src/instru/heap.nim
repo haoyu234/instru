@@ -144,7 +144,7 @@ proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
 
   shiftUp(h, c[])
 
-proc dequeue*(h: var InstruHeap): ptr InstruHeapNode =
+proc popFront*(h: var InstruHeap): ptr InstruHeapNode =
   let n = h.top
   remove(h, h.top[])
   n

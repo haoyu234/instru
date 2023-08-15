@@ -13,7 +13,7 @@ type
 
 proc insertJob(q: var InstruQueue, j: ptr Job) =
   initEmpty(j.instruQueue)
-  insertTail(q, j.instruQueue)
+  insertBack(q, j.instruQueue)
 
 template newJob(body: untyped): ptr Job =
   new(Job):
@@ -70,7 +70,7 @@ test "items":
 
 test "mergeInto":
   var n = 0
-  
+
   var q1 = InstruQueue()
   var q2 = InstruQueue()
   var q3 = InstruQueue()
@@ -139,5 +139,6 @@ test "popFront/popBack":
 
   # There's one element left.
 
+  check not isEmpty(q)
   check popFront(q) != nil
-  check popFront(q) == nil
+  check isEmpty(q)

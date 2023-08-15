@@ -12,13 +12,13 @@ proc initEmpty*(h: var InstruQueue) =
   h.next = h.addr
   h.previous = h.addr
 
-proc insertHead*(h, n: var InstruQueue) =
+proc insertFront*(h, n: var InstruQueue) =
   n.next = h.next
   n.previous = h.addr
   n.next.previous = n.addr
   h.next = n.addr
 
-proc insertTail*(h, n: var InstruQueue) =
+proc insertBack*(h, n: var InstruQueue) =
   n.next = h.addr
   n.previous = h.previous
   n.previous.next = n.addr
@@ -37,18 +37,14 @@ proc remove*(h: var InstruQueue) =
   h.next.previous = h.previous
 
 proc popFront*(h: var InstruQueue): ptr InstruQueue =
-  if not isEmpty(h):
-    let n = h.next
-    remove(n[])
-    return n
-  return nil
+  let n = h.next
+  remove(n[])
+  n
 
 proc popBack*(h: var InstruQueue): ptr InstruQueue =
-  if not isEmpty(h):
-    let n = h.previous
-    remove(n[])
-    return n
-  return nil
+  let n = h.previous
+  remove(n[])
+  n
 
 iterator items*(h: var InstruQueue): ptr InstruQueue =
   let q = h.addr
