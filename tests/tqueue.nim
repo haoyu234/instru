@@ -9,7 +9,7 @@ import instru/macros
 type
   Job = object
     executeJob: proc ()
-    instruQueue: InstruQueue
+    instruQueue: InstruQueueNode
 
 proc insertJob(q: var InstruQueue, j: ptr Job) =
   initEmpty(j.instruQueue)
