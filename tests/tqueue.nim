@@ -95,8 +95,8 @@ test "mergeInto":
       newJob():
         n = n - 3
 
-  mergeInto(q1, q2)
-  mergeInto(q1, q3)
+  mergeInto(q2, q1)
+  mergeInto(q3, q1)
 
   for i in q1:
     var j = data(i[], Job, instruQueue)

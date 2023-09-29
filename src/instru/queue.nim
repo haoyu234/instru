@@ -32,12 +32,12 @@ proc insertBack*(h: var InstruQueue, n: var InstruQueueNode) =
   h.node.previous = n.addr
 
 proc mergeInto*(h, n: var InstruQueue) =
-  h.node.previous.next = n.node.next
-  n.node.next.previous = h.node.previous
-  h.node.previous = n.node.previous
-  h.node.previous.next = h.node.addr
+  n.node.previous.next = h.node.next
+  h.node.next.previous = n.node.previous
+  n.node.previous = h.node.previous
+  n.node.previous.next = n.node.addr
 
-  initEmpty(n)
+  initEmpty(h)
 
 proc moveInto*(h, n: var InstruQueue) =
   if h.isEmpty():
