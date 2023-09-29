@@ -2,16 +2,19 @@ import macros
 
 type
   InstruHeap* = object
-    len*: int
-    top*: ptr InstruHeapNode
+    len: int
+    top: ptr InstruHeapNode
     lessThan: proc (a, b: var InstruHeapNode): bool
 
   InstruHeapNode* = object
-    left*: ptr InstruHeapNode
-    right*: ptr InstruHeapNode
-    parent*: ptr InstruHeapNode
+    left: ptr InstruHeapNode
+    right: ptr InstruHeapNode
+    parent: ptr InstruHeapNode
 
-proc isEmpty*(h: var InstruHeap): bool =
+template len*(h: InstruHeap): int = h.len
+template top*(h: InstruHeap): ptr InstruHeapNode = h.top
+
+template isEmpty*(h: var InstruHeap): bool =
   h.top == nil
 
 proc initEmpty*(h: var InstruHeap, lessThan: proc (a,
@@ -20,7 +23,7 @@ proc initEmpty*(h: var InstruHeap, lessThan: proc (a,
   h.top = nil
   h.lessThan = lessThan
 
-proc initEmpty*(h: var InstruHeapNode) =
+template initEmpty*(h: var InstruHeapNode) =
   reset(h)
 
 proc swap(h: var InstruHeap, a, b: var InstruHeapNode) =
@@ -52,7 +55,7 @@ proc swap(h: var InstruHeap, a, b: var InstruHeapNode) =
   else:
     b.parent.right = b.addr
 
-proc traverse*(h: var InstruHeap, n: int): (ptr ptr InstruHeapNode,
+proc traverse(h: var InstruHeap, n: int): (ptr ptr InstruHeapNode,
     ptr ptr InstruHeapNode) =
   var k = uint32(0)
   var path = uint32(0)
@@ -78,7 +81,7 @@ proc traverse*(h: var InstruHeap, n: int): (ptr ptr InstruHeapNode,
 
   (p, c)
 
-proc shiftUp(h: var InstruHeap, n: var InstruHeapNode) =
+template shiftUp(h: var InstruHeap, n: var InstruHeapNode) =
   let lessThan = h.lessThan
 
   while n.parent != nil and lessThan(n, n.parent[]):
@@ -144,7 +147,7 @@ proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
 
   shiftUp(h, c[])
 
-proc popFront*(h: var InstruHeap): ptr InstruHeapNode =
+template popTop*(h: var InstruHeap): ptr InstruHeapNode =
   let n = h.top
   remove(h, h.top[])
   n

@@ -2,36 +2,54 @@ import macros
 
 type
   InstruQueueNode* = object
-    previous*: ptr InstruQueueNode
-    next*: ptr InstruQueueNode
+    previous: ptr InstruQueueNode
+    next: ptr InstruQueueNode
 
   InstruQueue* = object
-    node*: InstruQueueNode
+    node: InstruQueueNode
 
-proc isEmpty*(h: var InstruQueue): bool =
+template next*(h: InstruQueue): ptr InstruQueueNode = h.node.next
+template previous*(h: InstruQueue): ptr InstruQueueNode = h.node.previous
+
+template next*(h: InstruQueueNode): ptr InstruQueueNode = h.next
+template previous*(h: InstruQueueNode): ptr InstruQueueNode = h.previous
+
+template isEmpty*(h: var InstruQueue): bool =
   h.addr == h.node.next
 
-proc initEmpty*(h: var InstruQueue) =
+template initEmpty*(h: var InstruQueue) =
   h.node.next = h.node.addr
   h.node.previous = h.node.addr
 
-proc initEmpty*(h: var InstruQueueNode) =
+template initEmpty*(h: var InstruQueueNode) =
   h.next = h.addr
   h.previous = h.addr
 
-proc insertFront*(h: var InstruQueue, n: var InstruQueueNode) =
+template insertFront*(h, n: var InstruQueueNode) =
+  n.next = h.next
+  n.previous = h.addr
+  n.next.previous = n.addr
+  h.next = n.addr
+
+template insertFront*(h: var InstruQueue, n: var InstruQueueNode) =
   n.next = h.node.next
   n.previous = h.node.addr
   n.next.previous = n.addr
   h.node.next = n.addr
 
-proc insertBack*(h: var InstruQueue, n: var InstruQueueNode) =
+template insertBack*(h, n: var InstruQueueNode) =
+  n.next = h.addr
+  n.previous = h.previous
+  n.previous.next = n.addr
+  h.previous = n.addr
+
+template insertBack*(h: var InstruQueue, n: var InstruQueueNode) =
   n.next = h.node.addr
   n.previous = h.node.previous
   n.previous.next = n.addr
   h.node.previous = n.addr
 
-proc mergeInto*(h, n: var InstruQueue) =
+template mergeInto*(h, n: var InstruQueue) =
   n.node.previous.next = h.node.next
   h.node.next.previous = n.node.previous
   n.node.previous = h.node.previous
@@ -39,7 +57,7 @@ proc mergeInto*(h, n: var InstruQueue) =
 
   initEmpty(h)
 
-proc moveInto*(h, n: var InstruQueue) =
+template moveInto*(h, n: var InstruQueue) =
   if h.isEmpty():
     n.initEmpty()
   else:
@@ -51,16 +69,16 @@ proc moveInto*(h, n: var InstruQueue) =
     h.node.previous.next = h.node.addr
     q.previous = n.node.addr
 
-proc remove*(h: var InstruQueueNode) =
+template remove*(h: var InstruQueueNode) =
   h.previous.next = h.next
   h.next.previous = h.previous
 
-proc popFront*(h: var InstruQueue): ptr InstruQueueNode =
+template popFront*(h: var InstruQueue): ptr InstruQueueNode =
   let n = h.node.next
   remove(n[])
   n
 
-proc popBack*(h: var InstruQueue): ptr InstruQueueNode =
+template popBack*(h: var InstruQueue): ptr InstruQueueNode =
   let n = h.node.previous
   remove(n[])
   n
