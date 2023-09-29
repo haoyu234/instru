@@ -20,6 +20,11 @@ template newJob(body: untyped): ptr Job =
     executeJob = proc () =
       body
 
+proc freeQueue(q: var InstruQueue) =
+  for i in q:
+    let j = data(i[], Job, instruQueue)
+    dealloc(j)
+
 test "isEmpty":
   var q = InstruQueue()
   initEmpty(q)
@@ -60,13 +65,12 @@ test "items":
         n = n + 1
 
   for i in q:
-    remove(i[])
-
     var j = data(i[], Job, instruQueue)
     j.executeJob()
-    dealloc(j)
 
   check n == num
+
+  freeQueue(q)
 
 test "mergeInto":
   var n = 0
@@ -95,13 +99,54 @@ test "mergeInto":
   mergeInto(q1, q3)
 
   for i in q1:
-    remove(i[])
-
     var j = data(i[], Job, instruQueue)
     j.executeJob()
-    dealloc(j)
 
   check n == 145
+
+  freeQueue(q1)
+  freeQueue(q2)
+  freeQueue(q3)
+
+test "moveInto":
+  var n = 0
+
+  var q1 = InstruQueue()
+  var q2 = InstruQueue()
+  var q3 = InstruQueue()
+
+  initEmpty(q1)
+  initEmpty(q2)
+  initEmpty(q3)
+
+  for i in 1..5:
+    insertJob(q1):
+      newJob():
+        n = n + 1
+
+  proc sum(q: InstruQueue): int =
+    n = 0
+
+    for i in q:
+      var j = data(i[], Job, instruQueue)
+      j.executeJob()
+
+    result = n
+
+  let n1 = sum(q1)
+  check n1 == 5
+
+  q1.moveInto(q2)
+  let n2 = sum(q2)
+  check n2 == 5
+
+  q2.moveInto(q3)
+  let n3 = sum(q3)
+  check n3 == 5
+
+  freeQueue(q1)
+  freeQueue(q2)
+  freeQueue(q3)
 
 test "popFront/popBack":
   var q = InstruQueue()

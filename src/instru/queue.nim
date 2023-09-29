@@ -39,6 +39,18 @@ proc mergeInto*(h, n: var InstruQueue) =
 
   initEmpty(n)
 
+proc moveInto*(h, n: var InstruQueue) =
+  if h.isEmpty():
+    n.initEmpty()
+  else:
+    let q = h.node.next
+    n.node.previous = h.node.previous
+    n.node.previous.next = n.node.addr
+    n.node.next = q
+    h.node.previous = q.previous
+    h.node.previous.next = h.node.addr
+    q.previous = n.node.addr
+
 proc remove*(h: var InstruQueueNode) =
   h.previous.next = h.next
   h.next.previous = h.previous
