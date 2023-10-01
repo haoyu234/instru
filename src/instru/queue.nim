@@ -10,7 +10,6 @@ type
 
 template next*(h: InstruQueue): ptr InstruQueueNode = h.node.next
 template previous*(h: InstruQueue): ptr InstruQueueNode = h.node.previous
-
 template next*(h: InstruQueueNode): ptr InstruQueueNode = h.next
 template previous*(h: InstruQueueNode): ptr InstruQueueNode = h.previous
 

@@ -13,9 +13,7 @@ type
 
 template len*(h: InstruHeap): int = h.len
 template top*(h: InstruHeap): ptr InstruHeapNode = h.top
-
-template isEmpty*(h: var InstruHeap): bool =
-  h.top == nil
+template isEmpty*(h: var InstruHeap): bool = isNil(h.top)
 
 proc initEmpty*(h: var InstruHeap, lessThan: proc (a,
     b: var InstruHeapNode): bool) =
@@ -39,16 +37,16 @@ proc swap(h: var InstruHeap, a, b: var InstruHeapNode) =
       b.right = a.addr
       b.left
 
-  if sibling != nil:
+  if not isNil(sibling):
     sibling[].parent = b.addr
 
-  if a.left != nil:
+  if not isNil(a.left):
     a.left.parent = a.addr
 
-  if a.right != nil:
+  if not isNil(a.right):
     a.right.parent = a.addr
 
-  if b.parent == nil:
+  if isNil(b.parent):
     h.top = b.addr
   elif b.parent.left == a.addr:
     b.parent.left = b.addr
@@ -84,7 +82,7 @@ proc traverse(h: var InstruHeap, n: int): (ptr ptr InstruHeapNode,
 template shiftUp(h: var InstruHeap, n: var InstruHeapNode) =
   let lessThan = h.lessThan
 
-  while n.parent != nil and lessThan(n, n.parent[]):
+  while not isNil(n.parent) and lessThan(n, n.parent[]):
     swap(h, n.parent[], n)
 
 proc insert*(h: var InstruHeap, n: var InstruHeapNode) =
@@ -115,13 +113,13 @@ proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
 
   c[] = n
 
-  if c.left != nil:
+  if not isNil(c.left):
     c.left.parent = c
 
-  if c.right != nil:
+  if not isNil(c.right):
     c.right.parent = c
 
-  if n.parent == nil:
+  if isNil(n.parent):
     h.top = c
   elif n.parent.left == n.addr:
     n.parent.left = c
@@ -133,10 +131,10 @@ proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
   while true:
     var s = c
 
-    if c.left != nil and lessThan(c.left[], s[]):
+    if not isNil(c.left) and lessThan(c.left[], s[]):
       s = c.left
 
-    if c.right != nil and lessThan(c.right[], s[]):
+    if not isNil(c.right) and lessThan(c.right[], s[]):
       s = c.right
 
     if s != c:
