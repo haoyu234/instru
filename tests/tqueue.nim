@@ -26,7 +26,7 @@ proc freeQueue(q: var InstruQueue) =
     dealloc(j)
 
 test "isEmpty":
-  var q = InstruQueue()
+  var q = default(InstruQueue)
   initEmpty(q)
 
   check q.isEmpty
@@ -56,7 +56,7 @@ test "items":
   var n = 0
   const num = 100
 
-  var q = InstruQueue()
+  var q = default(InstruQueue)
   initEmpty(q)
 
   for i in 1..num:
@@ -75,9 +75,9 @@ test "items":
 test "mergeInto":
   var n = 0
 
-  var q1 = InstruQueue()
-  var q2 = InstruQueue()
-  var q3 = InstruQueue()
+  var q1 = default(InstruQueue)
+  var q2 = default(InstruQueue)
+  var q3 = default(InstruQueue)
   initEmpty(q1)
   initEmpty(q2)
   initEmpty(q3)
@@ -111,9 +111,9 @@ test "mergeInto":
 test "moveInto":
   var n = 0
 
-  var q1 = InstruQueue()
-  var q2 = InstruQueue()
-  var q3 = InstruQueue()
+  var q1 = default(InstruQueue)
+  var q2 = default(InstruQueue)
+  var q3 = default(InstruQueue)
 
   initEmpty(q1)
   initEmpty(q2)
@@ -149,7 +149,7 @@ test "moveInto":
   freeQueue(q3)
 
 test "popFront/popBack":
-  var q = InstruQueue()
+  var q = default(InstruQueue)
   initEmpty(q)
 
   var s = 0

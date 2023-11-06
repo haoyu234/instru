@@ -5,8 +5,12 @@ type
     previous: ptr InstruQueueNode
     next: ptr InstruQueueNode
 
-  InstruQueue* = object
-    node: InstruQueueNode
+  # InstruQueue* = object
+  #   node: InstruQueueNode
+
+  InstruQueue* = distinct InstruQueueNode
+
+template node(h: InstruQueue): var InstruQueueNode = InstruQueueNode(h)
 
 template next*(h: InstruQueue): ptr InstruQueueNode = h.node.next
 template previous*(h: InstruQueue): ptr InstruQueueNode = h.node.previous
