@@ -5,24 +5,23 @@ type
     previous: ptr InstruQueueNode
     next: ptr InstruQueueNode
 
-  # InstruQueue* = object
-  #   node: InstruQueueNode
-
   InstruQueue* = distinct InstruQueueNode
 
-template node(h: InstruQueue): var InstruQueueNode = InstruQueueNode(h)
-
-template next*(h: InstruQueue): ptr InstruQueueNode = h.node.next
-template previous*(h: InstruQueue): ptr InstruQueueNode = h.node.previous
 template next*(h: InstruQueueNode): ptr InstruQueueNode = h.next
 template previous*(h: InstruQueueNode): ptr InstruQueueNode = h.previous
 
+template head*(h: InstruQueue): ptr InstruQueueNode =
+  InstruQueueNode(h).next
+
 template isEmpty*(h: var InstruQueue): bool =
-  h.addr == h.node.next
+  h.addr == InstruQueueNode(h).next
+
+template isEmpty*(h: var InstruQueueNode): bool =
+  h.addr == h.next
 
 template initEmpty*(h: var InstruQueue) =
-  h.node.next = h.node.addr
-  h.node.previous = h.node.addr
+  InstruQueueNode(h).next = InstruQueueNode(h).addr
+  InstruQueueNode(h).previous = InstruQueueNode(h).addr
 
 template initEmpty*(h: var InstruQueueNode) =
   h.next = h.addr
@@ -35,10 +34,10 @@ template insertFront*(h, n: var InstruQueueNode) =
   h.next = n.addr
 
 template insertFront*(h: var InstruQueue, n: var InstruQueueNode) =
-  n.next = h.node.next
-  n.previous = h.node.addr
+  n.next = InstruQueueNode(h).next
+  n.previous = InstruQueueNode(h).addr
   n.next.previous = n.addr
-  h.node.next = n.addr
+  InstruQueueNode(h).next = n.addr
 
 template insertBack*(h, n: var InstruQueueNode) =
   n.next = h.addr
@@ -47,16 +46,16 @@ template insertBack*(h, n: var InstruQueueNode) =
   h.previous = n.addr
 
 template insertBack*(h: var InstruQueue, n: var InstruQueueNode) =
-  n.next = h.node.addr
-  n.previous = h.node.previous
+  n.next = InstruQueueNode(h).addr
+  n.previous = InstruQueueNode(h).previous
   n.previous.next = n.addr
-  h.node.previous = n.addr
+  InstruQueueNode(h).previous = n.addr
 
 template mergeInto*(h, n: var InstruQueue) =
-  n.node.previous.next = h.node.next
-  h.node.next.previous = n.node.previous
-  n.node.previous = h.node.previous
-  n.node.previous.next = n.node.addr
+  InstruQueueNode(n).previous.next = InstruQueueNode(h).next
+  InstruQueueNode(h).next.previous = InstruQueueNode(n).previous
+  InstruQueueNode(n).previous = InstruQueueNode(h).previous
+  InstruQueueNode(n).previous.next = InstruQueueNode(n).addr
 
   initEmpty(h)
 
@@ -64,31 +63,31 @@ template moveInto*(h, n: var InstruQueue) =
   if h.isEmpty():
     n.initEmpty()
   else:
-    let q = h.node.next
-    n.node.previous = h.node.previous
-    n.node.previous.next = n.node.addr
-    n.node.next = q
-    h.node.previous = q.previous
-    h.node.previous.next = h.node.addr
-    q.previous = n.node.addr
+    let q = InstruQueueNode(h).next
+    InstruQueueNode(n).previous = InstruQueueNode(h).previous
+    InstruQueueNode(n).previous.next = InstruQueueNode(n).addr
+    InstruQueueNode(n).next = q
+    InstruQueueNode(h).previous = q.previous
+    InstruQueueNode(h).previous.next = InstruQueueNode(h).addr
+    q.previous = InstruQueueNode(n).addr
 
 template remove*(h: var InstruQueueNode) =
   h.previous.next = h.next
   h.next.previous = h.previous
 
 template popFront*(h: var InstruQueue): ptr InstruQueueNode =
-  let n = h.node.next
+  let n = InstruQueueNode(h).next
   remove(n[])
   n
 
 template popBack*(h: var InstruQueue): ptr InstruQueueNode =
-  let n = h.node.previous
+  let n = InstruQueueNode(h).previous
   remove(n[])
   n
 
 iterator items*(h: var InstruQueue): ptr InstruQueueNode =
-  var i = h.node.next
-  let q = h.node.addr
+  var i = InstruQueueNode(h).next
+  let q = InstruQueueNode(h).addr
 
   while i != q:
     let n = i.next
@@ -96,7 +95,7 @@ iterator items*(h: var InstruQueue): ptr InstruQueueNode =
     i = n
 
 iterator items*(h: InstruQueue): ptr InstruQueueNode =
-  var i = h.node.next
+  var i = InstruQueueNode(h).next
   let q = i.previous
 
   while i != q:
