@@ -74,6 +74,7 @@ template moveInto*(h, n: var InstruQueue) =
 template remove*(h: var InstruQueueNode) =
   h.previous.next = h.next
   h.next.previous = h.previous
+  h.initEmpty
 
 template popFront*(h: var InstruQueue): ptr InstruQueueNode =
   let n = InstruQueueNode(h).next
