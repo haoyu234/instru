@@ -13,7 +13,9 @@ type
 
 template len*(h: InstruHeap): int = h.len
 template top*(h: InstruHeap): ptr InstruHeapNode = h.top
-template isEmpty*(h: var InstruHeap): bool = isNil(h.top)
+template isEmpty*(h: InstruHeap): bool = isNil(h.top)
+template isEmpty*(h: InstruHeapNode): bool = isNil(h.parent) and isNil(
+    h.left) and isNil(h.right)
 
 proc initEmpty*(h: var InstruHeap, lessThan: proc (a,
     b: var InstruHeapNode): bool) =
