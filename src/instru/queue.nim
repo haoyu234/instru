@@ -7,51 +7,60 @@ type
 
   InstruQueue* = distinct InstruQueueNode
 
-template next*(h: InstruQueueNode): ptr InstruQueueNode = h.next
-template previous*(h: InstruQueueNode): ptr InstruQueueNode = h.previous
+proc next*(h: InstruQueueNode): ptr InstruQueueNode {.inline.} = h.next
+proc previous*(h: InstruQueueNode): ptr InstruQueueNode {.inline.} = h.previous
+proc head*(h: InstruQueue): ptr InstruQueueNode {.inline.} = InstruQueueNode(h).next
 
-template head*(h: InstruQueue): ptr InstruQueueNode =
-  InstruQueueNode(h).next
+proc isEmpty*(h: var InstruQueueNode): bool {.inline.} =
+  h.next.isNil or h.addr == h.next
 
-template isEmpty*(h: var InstruQueue): bool =
-  h.addr == InstruQueueNode(h).next
+proc isEmpty*(h: var InstruQueue): bool {.inline.} =
+  InstruQueueNode(h).isEmpty()
 
-template isEmpty*(h: var InstruQueueNode): bool =
-  h.addr == h.next
+proc isQueued*(h: var InstruQueueNode): bool {.inline.} =
+  not h.isEmpty
 
-template initEmpty*(h: var InstruQueue) =
+proc initEmpty*(h: var InstruQueue) {.inline.} =
   InstruQueueNode(h).next = InstruQueueNode(h).addr
   InstruQueueNode(h).previous = InstruQueueNode(h).addr
 
-template initEmpty*(h: var InstruQueueNode) =
+proc initEmpty*(h: var InstruQueueNode) {.inline.} =
   h.next = h.addr
   h.previous = h.addr
 
-template insertFront*(h, n: var InstruQueueNode) =
+proc insertFront*(h, n: var InstruQueueNode) {.inline.} =
+  assert not n.isQueued
+
   n.next = h.next
   n.previous = h.addr
   n.next.previous = n.addr
   h.next = n.addr
 
-template insertFront*(h: var InstruQueue, n: var InstruQueueNode) =
+proc insertFront*(h: var InstruQueue, n: var InstruQueueNode) {.inline.} =
+  assert not n.isQueued
+
   n.next = InstruQueueNode(h).next
   n.previous = InstruQueueNode(h).addr
   n.next.previous = n.addr
   InstruQueueNode(h).next = n.addr
 
-template insertBack*(h, n: var InstruQueueNode) =
+proc insertBack*(h, n: var InstruQueueNode) {.inline.} =
+  assert not n.isQueued
+
   n.next = h.addr
   n.previous = h.previous
   n.previous.next = n.addr
   h.previous = n.addr
 
-template insertBack*(h: var InstruQueue, n: var InstruQueueNode) =
+proc insertBack*(h: var InstruQueue, n: var InstruQueueNode) {.inline.} =
+  assert not n.isQueued
+
   n.next = InstruQueueNode(h).addr
   n.previous = InstruQueueNode(h).previous
   n.previous.next = n.addr
   InstruQueueNode(h).previous = n.addr
 
-template mergeInto*(h, n: var InstruQueue) =
+proc mergeInto*(h, n: var InstruQueue) {.inline.} =
   InstruQueueNode(n).previous.next = InstruQueueNode(h).next
   InstruQueueNode(h).next.previous = InstruQueueNode(n).previous
   InstruQueueNode(n).previous = InstruQueueNode(h).previous
@@ -59,7 +68,7 @@ template mergeInto*(h, n: var InstruQueue) =
 
   initEmpty(h)
 
-template moveInto*(h, n: var InstruQueue) =
+proc moveInto*(h, n: var InstruQueue) {.inline.} =
   if h.isEmpty():
     n.initEmpty()
   else:
@@ -71,17 +80,19 @@ template moveInto*(h, n: var InstruQueue) =
     InstruQueueNode(h).previous.next = InstruQueueNode(h).addr
     q.previous = InstruQueueNode(n).addr
 
-template remove*(h: var InstruQueueNode) =
+proc remove*(h: var InstruQueueNode) {.inline.} =
+  assert h.isQueued
+
   h.previous.next = h.next
   h.next.previous = h.previous
   h.initEmpty
 
-template popFront*(h: var InstruQueue): ptr InstruQueueNode =
+proc popFront*(h: var InstruQueue): ptr InstruQueueNode {.inline.} =
   let n = InstruQueueNode(h).next
   remove(n[])
   n
 
-template popBack*(h: var InstruQueue): ptr InstruQueueNode =
+proc popBack*(h: var InstruQueue): ptr InstruQueueNode {.inline.} =
   let n = InstruQueueNode(h).previous
   remove(n[])
   n

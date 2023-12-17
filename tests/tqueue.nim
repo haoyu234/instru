@@ -187,3 +187,15 @@ test "popFront/popBack":
   check not isEmpty(q)
   check popFront(q) != nil
   check isEmpty(q)
+
+test "isQueued":
+  var q = default(InstruQueue)
+  initEmpty(q)
+
+  let job = newJob():
+    discard "body"
+
+  assert not job.instruQueue.isQueued
+
+  q.insertJob(job)
+  assert job.instruQueue.isQueued

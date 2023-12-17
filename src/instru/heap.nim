@@ -11,19 +11,25 @@ type
     right: ptr InstruHeapNode
     parent: ptr InstruHeapNode
 
-template len*(h: InstruHeap): int = h.len
-template top*(h: InstruHeap): ptr InstruHeapNode = h.top
-template isEmpty*(h: InstruHeap): bool = isNil(h.top)
-template isEmpty*(h: InstruHeapNode): bool = isNil(h.parent) and isNil(
-    h.left) and isNil(h.right)
+proc len*(h: InstruHeap): int {.inline.} = h.len
+proc top*(h: InstruHeap): ptr InstruHeapNode {.inline.} = h.top
+proc isEmpty*(h: InstruHeap): bool {.inline.} = isNil(h.top)
 
-proc initEmpty*(h: var InstruHeap, lessThan: proc (a,
-    b: var InstruHeapNode): bool) =
+proc isEmpty*(n: InstruHeapNode): bool {.inline.} =
+  isNil(n.parent) and isNil(
+    n.left) and isNil(n.right)
+
+proc isQueued*(h: InstruHeap, n: var InstruHeapNode): bool {.inline.} =
+  h.top == n.addr or not n.isEmpty
+
+proc initEmpty*(h: var InstruHeap,
+  lessThan: proc (a, b: var InstruHeapNode): bool) {.inline.} =
+
   h.len = 0
   h.top = nil
   h.lessThan = lessThan
 
-template initEmpty*(h: var InstruHeapNode) =
+proc initEmpty*(h: var InstruHeapNode) {.inline.} =
   reset(h)
 
 proc swap(h: var InstruHeap, a, b: var InstruHeapNode) =
@@ -57,8 +63,8 @@ proc swap(h: var InstruHeap, a, b: var InstruHeapNode) =
 
 proc traverse(h: var InstruHeap, n: int): (ptr ptr InstruHeapNode,
     ptr ptr InstruHeapNode) =
-  var k = uint32(0)
-  var path = uint32(0)
+  var k: uint32 = 0
+  var path: uint32 = 0
 
   var num = uint32(n)
   while num >= 2:
@@ -81,14 +87,14 @@ proc traverse(h: var InstruHeap, n: int): (ptr ptr InstruHeapNode,
 
   (p, c)
 
-template shiftUp(h: var InstruHeap, n: var InstruHeapNode) =
+proc shiftUp(h: var InstruHeap, n: var InstruHeapNode) {.inline.} =
   let lessThan = h.lessThan
 
   while not isNil(n.parent) and lessThan(n, n.parent[]):
     swap(h, n.parent[], n)
 
 proc insert*(h: var InstruHeap, n: var InstruHeapNode) =
-  reset(n)
+  assert not h.isQueued(n)
 
   let (p, c) = traverse(h, succ h.len)
 
@@ -100,6 +106,8 @@ proc insert*(h: var InstruHeap, n: var InstruHeapNode) =
   shiftUp(h, n)
 
 proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
+  assert h.isQueued(n)
+
   var c = block:
     var (_, c) = traverse(h, h.len)
     var result = c[]
@@ -147,7 +155,7 @@ proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
 
   shiftUp(h, c[])
 
-template popTop*(h: var InstruHeap): ptr InstruHeapNode =
+proc pop*(h: var InstruHeap): ptr InstruHeapNode {.inline.} =
   let n = h.top
   remove(h, h.top[])
   n
