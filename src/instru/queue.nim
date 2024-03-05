@@ -7,9 +7,14 @@ type
 
   InstruQueue* = distinct InstruQueueNode
 
-proc next*(h: InstruQueueNode): ptr InstruQueueNode {.inline.} = h.next
-proc previous*(h: InstruQueueNode): ptr InstruQueueNode {.inline.} = h.previous
-proc head*(h: InstruQueue): ptr InstruQueueNode {.inline.} = InstruQueueNode(h).next
+proc next*(h: InstruQueueNode): ptr InstruQueueNode {.inline.} =
+  h.next
+
+proc previous*(h: InstruQueueNode): ptr InstruQueueNode {.inline.} =
+  h.previous
+
+proc head*(h: InstruQueue): ptr InstruQueueNode {.inline.} =
+  InstruQueueNode(h).next
 
 proc isEmpty*(h: var InstruQueueNode): bool {.inline.} =
   h.next.isNil or h.addr == h.next
@@ -28,14 +33,6 @@ proc initEmpty*(h: var InstruQueueNode) {.inline.} =
   h.next = h.addr
   h.previous = h.addr
 
-proc insertFront*(h, n: var InstruQueueNode) {.inline.} =
-  assert not n.isQueued
-
-  n.next = h.next
-  n.previous = h.addr
-  n.next.previous = n.addr
-  h.next = n.addr
-
 proc insertFront*(h: var InstruQueue, n: var InstruQueueNode) {.inline.} =
   assert not n.isQueued
 
@@ -43,14 +40,6 @@ proc insertFront*(h: var InstruQueue, n: var InstruQueueNode) {.inline.} =
   n.previous = InstruQueueNode(h).addr
   n.next.previous = n.addr
   InstruQueueNode(h).next = n.addr
-
-proc insertBack*(h, n: var InstruQueueNode) {.inline.} =
-  assert not n.isQueued
-
-  n.next = h.addr
-  n.previous = h.previous
-  n.previous.next = n.addr
-  h.previous = n.addr
 
 proc insertBack*(h: var InstruQueue, n: var InstruQueueNode) {.inline.} =
   assert not n.isQueued

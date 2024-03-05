@@ -2,14 +2,15 @@
 
 import unittest
 
-import std/sugar
 import instru/queue
 import instru/macros
+import new2
 
-type
-  Job = object
-    executeJob: proc ()
-    instruQueue: InstruQueueNode
+import std/sugar
+
+type Job = object
+  executeJob: proc()
+  instruQueue: InstruQueueNode
 
 proc insertJob(q: var InstruQueue, j: ptr Job) =
   initEmpty(j.instruQueue)
@@ -17,7 +18,7 @@ proc insertJob(q: var InstruQueue, j: ptr Job) =
 
 template newJob(body: untyped): ptr Job =
   new(Job):
-    executeJob = proc () =
+    executeJob = proc() =
       body
 
 proc freeQueue(q: var InstruQueue) =
@@ -31,7 +32,7 @@ test "isEmpty":
 
   check q.isEmpty
 
-  let job = newJob():
+  let job = newJob:
     discard "body"
 
   insertJob(q, job)
@@ -44,7 +45,7 @@ test "isEmpty":
   check q.isEmpty
 
 test "containerOf":
-  var job = newJob():
+  var job = newJob:
     discard "body"
 
   var addr1 = cast[pointer](job)
@@ -59,9 +60,9 @@ test "items":
   var q = default(InstruQueue)
   initEmpty(q)
 
-  for i in 1..num:
+  for i in 1 .. num:
     insertJob(q):
-      newJob():
+      newJob:
         n = n + 1
 
   for i in q:
@@ -82,17 +83,17 @@ test "mergeInto":
   initEmpty(q2)
   initEmpty(q3)
 
-  for i in 1..5:
+  for i in 1 .. 5:
     insertJob(q1):
-      newJob():
+      newJob:
         n = n + 1
 
     insertJob(q2):
-      newJob():
+      newJob:
         n = n * 2
 
     insertJob(q3):
-      newJob():
+      newJob:
         n = n - 3
 
   mergeInto(q2, q1)
@@ -119,9 +120,9 @@ test "moveInto":
   initEmpty(q2)
   initEmpty(q3)
 
-  for i in 1..5:
+  for i in 1 .. 5:
     insertJob(q1):
-      newJob():
+      newJob:
         n = n + 1
 
   proc sum(q: InstruQueue): int =
@@ -154,10 +155,10 @@ test "popFront/popBack":
 
   var s = 0
 
-  for i in 1..3:
+  for i in 1 .. 3:
     insertJob(q):
       capture i:
-        newJob():
+        newJob:
           s = i
 
   # popBack
@@ -192,7 +193,7 @@ test "isQueued":
   var q = default(InstruQueue)
   initEmpty(q)
 
-  let job = newJob():
+  let job = newJob:
     discard "body"
 
   assert not job.instruQueue.isQueued

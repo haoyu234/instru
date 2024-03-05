@@ -4,14 +4,14 @@ import unittest
 
 import instru/heap
 import instru/macros
+import new2
 
 import std/random
 
-type
-  SchedJob = object
-    priority: int
-    executeJob: proc ()
-    instruHeap: InstruHeapNode
+type SchedJob = object
+  priority: int
+  executeJob: proc()
+  instruHeap: InstruHeapNode
 
 proc insertJob(h: var InstruHeap, j: ptr SchedJob) =
   initEmpty(j.instruHeap)
@@ -20,14 +20,17 @@ proc insertJob(h: var InstruHeap, j: ptr SchedJob) =
 template newJob(id: int, body: untyped): ptr SchedJob =
   new(SchedJob):
     priority = id
-    executeJob = proc () =
+    executeJob = proc() =
       body
 
 proc initHeap(h: var InstruHeap) =
-  initEmpty(h, proc (a, b: var InstruHeapNode): bool =
-    let aa = data(a, SchedJob, instruHeap)
-    let bb = data(b, SchedJob, instruHeap)
-    return aa.priority < bb.priority
+  initEmpty(
+    h,
+    proc(a, b: var InstruHeapNode): bool =
+      let aa = data(a, SchedJob, instruHeap)
+      let bb = data(b, SchedJob, instruHeap)
+      return aa.priority < bb.priority
+    ,
   )
 
 test "insert":
@@ -49,7 +52,7 @@ test "isEmpty":
 
   const n = 30
 
-  let round = proc () =
+  let round = proc() =
     for i in countup(1, n):
       let job = newJob(i):
         discard "body"

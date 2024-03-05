@@ -1,30 +1,38 @@
 import macros
 
 type
+  LessThen = proc(a, b: var InstruHeapNode): bool
+
   InstruHeap* = object
     len: int
     top: ptr InstruHeapNode
-    lessThan: proc (a, b: var InstruHeapNode): bool
+    lessThan: LessThen
 
   InstruHeapNode* = object
     left: ptr InstruHeapNode
     right: ptr InstruHeapNode
     parent: ptr InstruHeapNode
 
-proc len*(h: InstruHeap): int {.inline.} = h.len
-proc top*(h: InstruHeap): ptr InstruHeapNode {.inline.} = h.top
-proc isEmpty*(h: InstruHeap): bool {.inline.} = isNil(h.top)
+  TraverseResult = object
+    parentAddr: ptr ptr InstruHeapNode
+    nodeAddr: ptr ptr InstruHeapNode
+
+proc len*(h: InstruHeap): int {.inline.} =
+  h.len
+
+proc top*(h: InstruHeap): ptr InstruHeapNode {.inline.} =
+  h.top
+
+proc isEmpty*(h: InstruHeap): bool {.inline.} =
+  isNil(h.top)
 
 proc isEmpty*(n: InstruHeapNode): bool {.inline.} =
-  isNil(n.parent) and isNil(
-    n.left) and isNil(n.right)
+  isNil(n.parent) and isNil(n.left) and isNil(n.right)
 
 proc isQueued*(h: InstruHeap, n: var InstruHeapNode): bool {.inline.} =
   h.top == n.addr or not n.isEmpty
 
-proc initEmpty*(h: var InstruHeap,
-  lessThan: proc (a, b: var InstruHeapNode): bool) {.inline.} =
-
+proc initEmpty*(h: var InstruHeap, lessThan: LessThen) {.inline.} =
   h.len = 0
   h.top = nil
   h.lessThan = lessThan
@@ -61,8 +69,7 @@ proc swap(h: var InstruHeap, a, b: var InstruHeapNode) =
   else:
     b.parent.right = b.addr
 
-proc traverse(h: var InstruHeap, n: int): (ptr ptr InstruHeapNode,
-    ptr ptr InstruHeapNode) =
+proc traverse(h: var InstruHeap, n: int): TraverseResult =
   var k: uint32 = 0
   var path: uint32 = 0
 
@@ -85,7 +92,7 @@ proc traverse(h: var InstruHeap, n: int): (ptr ptr InstruHeapNode,
     path = path shr 1
     dec k
 
-  (p, c)
+  TraverseResult(parentAddr: p, nodeAddr: c)
 
 proc shiftUp(h: var InstruHeap, n: var InstruHeapNode) {.inline.} =
   let lessThan = h.lessThan
@@ -96,10 +103,9 @@ proc shiftUp(h: var InstruHeap, n: var InstruHeapNode) {.inline.} =
 proc insert*(h: var InstruHeap, n: var InstruHeapNode) =
   assert not h.isQueued(n)
 
-  let (p, c) = traverse(h, succ h.len)
-
-  n.parent = p[]
-  c[] = n.addr
+  let r = traverse(h, succ h.len)
+  n.parent = r.parentAddr[]
+  r.nodeAddr[] = n.addr
 
   inc h.len
 
@@ -109,9 +115,9 @@ proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
   assert h.isQueued(n)
 
   var c = block:
-    var (_, c) = traverse(h, h.len)
-    var result = c[]
-    c[] = nil
+    let r = traverse(h, h.len)
+    var result = r.nodeAddr[]
+    r.nodeAddr[] = nil
     result
 
   dec h.len
