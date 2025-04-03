@@ -1,7 +1,5 @@
-import macros
-
 type
-  LessThen = proc(a, b: var InstruHeapNode): bool
+  LessThen = proc(a, b: var InstruHeapNode): bool {.raises: [].}
 
   InstruHeap* = object
     len: int
@@ -9,6 +7,7 @@ type
     lessThan: LessThen
 
   InstruHeapNode* = object
+    heap: ptr InstruHeap
     left: ptr InstruHeapNode
     right: ptr InstruHeapNode
     parent: ptr InstruHeapNode
@@ -17,20 +16,17 @@ type
     parentAddr: ptr ptr InstruHeapNode
     nodeAddr: ptr ptr InstruHeapNode
 
-proc len*(h: InstruHeap): int {.inline.} =
+template len*(h: InstruHeap): int =
   h.len
 
-proc top*(h: InstruHeap): ptr InstruHeapNode {.inline.} =
+template top*(h: InstruHeap): ptr InstruHeapNode =
   h.top
 
-proc isEmpty*(h: InstruHeap): bool {.inline.} =
+template isEmpty*(h: InstruHeap): bool =
   isNil(h.top)
 
-proc isEmpty*(n: InstruHeapNode): bool {.inline.} =
-  isNil(n.parent) and isNil(n.left) and isNil(n.right)
-
-proc isQueued*(h: InstruHeap, n: var InstruHeapNode): bool {.inline.} =
-  h.top == n.addr or not n.isEmpty
+template isEmpty*(n: InstruHeapNode): bool =
+  isNil(n.heap)
 
 proc initEmpty*(h: var InstruHeap, lessThan: LessThen) {.inline.} =
   h.len = 0
@@ -101,7 +97,9 @@ proc shiftUp(h: var InstruHeap, n: var InstruHeapNode) {.inline.} =
     swap(h, n.parent[], n)
 
 proc insert*(h: var InstruHeap, n: var InstruHeapNode) =
-  assert not h.isQueued(n)
+  assert n.isEmpty()
+
+  n.heap = h.addr
 
   let r = traverse(h, succ h.len)
   n.parent = r.parentAddr[]
@@ -111,11 +109,13 @@ proc insert*(h: var InstruHeap, n: var InstruHeapNode) =
 
   shiftUp(h, n)
 
-proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
-  assert h.isQueued(n)
+proc remove*(n: var InstruHeapNode) =
+  assert not n.isEmpty()
+
+  let h = n.heap
 
   var c = block:
-    let r = traverse(h, h.len)
+    let r = traverse(h[], h.len)
     var result = r.nodeAddr[]
     r.nodeAddr[] = nil
     result
@@ -154,17 +154,16 @@ proc remove*(h: var InstruHeap, n: var InstruHeapNode) =
       s = c.right
 
     if s != c:
-      swap(h, c[], s[])
+      swap(h[], c[], s[])
       continue
 
     break
 
-  shiftUp(h, c[])
+  shiftUp(h[], c[])
+
+  n.initEmpty()
 
 proc pop*(h: var InstruHeap): ptr InstruHeapNode {.inline.} =
   let n = h.top
-  remove(h, h.top[])
+  remove(h.top[])
   n
-
-template data*[T](h: var InstruHeapNode, a: typedesc[T], b: untyped): ptr T =
-  containerOf(h.addr, a, b)

@@ -1,5 +1,3 @@
-import macros
-
 type
   InstruQueueNode* = object
     previous: ptr InstruQueueNode
@@ -7,23 +5,20 @@ type
 
   InstruQueue* = distinct InstruQueueNode
 
-proc next*(h: InstruQueueNode): ptr InstruQueueNode {.inline.} =
+template next*(h: InstruQueueNode): ptr InstruQueueNode =
   h.next
 
-proc previous*(h: InstruQueueNode): ptr InstruQueueNode {.inline.} =
+template previous*(h: InstruQueueNode): ptr InstruQueueNode =
   h.previous
 
-proc head*(h: InstruQueue): ptr InstruQueueNode {.inline.} =
+template head*(h: InstruQueue): ptr InstruQueueNode =
   InstruQueueNode(h).next
 
-proc isEmpty*(h: var InstruQueueNode): bool {.inline.} =
+template isEmpty*(h: var InstruQueueNode): bool =
   h.next.isNil or h.addr == h.next
 
-proc isEmpty*(h: var InstruQueue): bool {.inline.} =
+template isEmpty*(h: var InstruQueue): bool =
   InstruQueueNode(h).isEmpty()
-
-proc isQueued*(h: var InstruQueueNode): bool {.inline.} =
-  not h.isEmpty
 
 proc initEmpty*(h: var InstruQueue) {.inline.} =
   InstruQueueNode(h).next = InstruQueueNode(h).addr
@@ -34,7 +29,7 @@ proc initEmpty*(h: var InstruQueueNode) {.inline.} =
   h.previous = h.addr
 
 proc insertFront*(h: var InstruQueue, n: var InstruQueueNode) {.inline.} =
-  assert not n.isQueued
+  assert n.isEmpty
 
   n.next = InstruQueueNode(h).next
   n.previous = InstruQueueNode(h).addr
@@ -42,7 +37,7 @@ proc insertFront*(h: var InstruQueue, n: var InstruQueueNode) {.inline.} =
   InstruQueueNode(h).next = n.addr
 
 proc insertBack*(h: var InstruQueue, n: var InstruQueueNode) {.inline.} =
-  assert not n.isQueued
+  assert n.isEmpty
 
   n.next = InstruQueueNode(h).addr
   n.previous = InstruQueueNode(h).previous
@@ -70,7 +65,7 @@ proc moveInto*(h, n: var InstruQueue) {.inline.} =
     q.previous = InstruQueueNode(n).addr
 
 proc remove*(h: var InstruQueueNode) {.inline.} =
-  assert h.isQueued
+  assert not h.isEmpty
 
   h.previous.next = h.next
   h.next.previous = h.previous
@@ -103,6 +98,3 @@ iterator items*(h: InstruQueue): ptr InstruQueueNode =
     let n = i.next
     yield i
     i = n
-
-template data*[T](h: var InstruQueueNode, a: typedesc[T], b: untyped): ptr T =
-  containerOf(h.addr, a, b)

@@ -4,7 +4,6 @@ import unittest
 
 import instru/queue
 import instru/macros
-import new2
 
 import std/sugar
 
@@ -17,13 +16,15 @@ proc insertJob(q: var InstruQueue, j: ptr Job) =
   insertBack(q, j.instruQueue)
 
 template newJob(body: untyped): ptr Job =
-  new(Job):
-    executeJob = proc() =
+  let p = create(Job)
+  block:
+    p.executeJob = proc() =
       body
+    p
 
 proc freeQueue(q: var InstruQueue) =
   for i in q:
-    let j = data(i[], Job, instruQueue)
+    let j = containerOf(i, Job, instruQueue)
     dealloc(j)
 
 test "isEmpty":
@@ -35,14 +36,19 @@ test "isEmpty":
   let job = newJob:
     discard "body"
 
+  check job.instruQueue.isEmpty
+
   insertJob(q, job)
 
   check not q.isEmpty
+  check not job.instruQueue.isEmpty
 
   remove(job.instruQueue)
-  dealloc(job)
 
   check q.isEmpty
+  check job.instruQueue.isEmpty
+
+  dealloc(job)
 
 test "containerOf":
   var job = newJob:
@@ -66,7 +72,7 @@ test "items":
         n = n + 1
 
   for i in q:
-    var j = data(i[], Job, instruQueue)
+    var j = containerOf(i, Job, instruQueue)
     j.executeJob()
 
   check n == num
@@ -100,7 +106,7 @@ test "mergeInto":
   mergeInto(q3, q1)
 
   for i in q1:
-    var j = data(i[], Job, instruQueue)
+    var j = containerOf(i, Job, instruQueue)
     j.executeJob()
 
   check n == 145
@@ -129,7 +135,7 @@ test "moveInto":
     n = 0
 
     for i in q:
-      var j = data(i[], Job, instruQueue)
+      var j = containerOf(i, Job, instruQueue)
       j.executeJob()
 
     result = n
@@ -166,7 +172,7 @@ test "popFront/popBack":
   var n = popBack(q)
   check n != nil
 
-  var j = data(n[], Job, instruQueue)
+  var j = containerOf(n, Job, instruQueue)
   j.executeJob()
   dealloc(j)
 
@@ -177,7 +183,7 @@ test "popFront/popBack":
   n = popFront(q)
   check n != nil
 
-  j = data(n[], Job, instruQueue)
+  j = containerOf(n, Job, instruQueue)
   j.executeJob()
   dealloc(j)
 
@@ -188,15 +194,3 @@ test "popFront/popBack":
   check not isEmpty(q)
   check popFront(q) != nil
   check isEmpty(q)
-
-test "isQueued":
-  var q = default(InstruQueue)
-  initEmpty(q)
-
-  let job = newJob:
-    discard "body"
-
-  assert not job.instruQueue.isQueued
-
-  q.insertJob(job)
-  assert job.instruQueue.isQueued

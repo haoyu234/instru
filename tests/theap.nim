@@ -4,33 +4,33 @@ import unittest
 
 import instru/heap
 import instru/macros
-import new2
 
 import std/random
 
-type SchedJob = object
+type Job = object
   priority: int
   executeJob: proc()
   instruHeap: InstruHeapNode
 
-proc insertJob(h: var InstruHeap, j: ptr SchedJob) =
+proc insertJob(h: var InstruHeap, j: ptr Job) =
   initEmpty(j.instruHeap)
   insert(h, j.instruHeap)
 
-template newJob(id: int, body: untyped): ptr SchedJob =
-  new(SchedJob):
-    priority = id
-    executeJob = proc() =
+template newJob(id: int, body: untyped): ptr Job =
+  let p = create(Job)
+  block:
+    p.priority = id
+    p.executeJob = proc() =
       body
+    p
 
 proc initHeap(h: var InstruHeap) =
   initEmpty(
     h,
     proc(a, b: var InstruHeapNode): bool =
-      let aa = data(a, SchedJob, instruHeap)
-      let bb = data(b, SchedJob, instruHeap)
-      return aa.priority < bb.priority
-    ,
+      let aa = containerOf(a.addr, Job, instruHeap)
+      let bb = containerOf(b.addr, Job, instruHeap)
+      aa.priority < bb.priority
   )
 
 test "insert":
@@ -45,6 +45,21 @@ test "insert":
     insertJob(h, job)
 
 test "isEmpty":
+  var h = InstruHeap()
+  initHeap(h)
+
+  let job = newJob(1):
+    discard "body"
+
+  check job.instruHeap.isEmpty()
+  check h.isEmpty()
+
+  h.insertJob(job)
+
+  check not job.instruHeap.isEmpty()
+  check not h.isEmpty()
+
+test "isEmpty 2":
   var h = InstruHeap()
   initHeap(h)
 
@@ -65,7 +80,7 @@ test "isEmpty":
       check not h.isEmpty
 
       var p = pop(h)
-      let j = data(p[], SchedJob, instruHeap)
+      let j = containerOf(p, Job, instruHeap)
       dealloc(j)
 
     check h.isEmpty
@@ -91,7 +106,7 @@ test "orderly":
 
   for i in countup(1, n):
     var n = pop(h)
-    let j = data(n[], SchedJob, instruHeap)
+    let j = containerOf(n, Job, instruHeap)
 
     check min <= j.priority
     min = j.priority
@@ -112,7 +127,7 @@ test "len":
       dec len
 
       var n = pop(h)
-      let j = data(n[], SchedJob, instruHeap)
+      let j = containerOf(n, Job, instruHeap)
       dealloc(j)
     else:
       inc len
@@ -123,15 +138,3 @@ test "len":
       insertJob(h, job)
 
     check h.len == len
-
-test "isQueued":
-  var h = InstruHeap()
-  initHeap(h)
-
-  let job = newJob(1):
-    discard "body"
-
-  assert not h.isQueued(job.instruHeap)
-
-  h.insertJob(job)
-  assert h.isQueued(job.instruHeap)
