@@ -125,6 +125,8 @@ proc remove*(n: var InstruHeapNode) =
   if c == n.addr:
     if c == h.top:
       h.top = nil
+
+    n.initEmpty()
     return
 
   c[] = n
