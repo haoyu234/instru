@@ -29,7 +29,7 @@ type
   InstruHeap* = object
     len: int
     top: ptr InstruHeapNode
-    lessThan: LessThen
+    lessThen: LessThen
 
   InstruHeapNode* = object
     heap: ptr InstruHeap
@@ -53,10 +53,10 @@ template isEmpty*(h: InstruHeap): bool =
 template isEmpty*(n: InstruHeapNode): bool =
   isNil(n.heap)
 
-proc initEmpty*(h: var InstruHeap, lessThan: LessThen) {.inline.} =
+proc initEmpty*(h: var InstruHeap, lessThen: LessThen) {.inline.} =
   h.len = 0
   h.top = nil
-  h.lessThan = lessThan
+  h.lessThen = lessThen
 
 proc initEmpty*(h: var InstruHeapNode) {.inline.} =
   reset(h)
@@ -116,9 +116,9 @@ proc traverse(h: var InstruHeap, n: int): TraverseResult =
   TraverseResult(parentAddr: p, nodeAddr: c)
 
 proc shiftUp(h: var InstruHeap, n: var InstruHeapNode) {.inline.} =
-  let lessThan = h.lessThan
+  let lessThen = h.lessThen
 
-  while not isNil(n.parent) and lessThan(n, n.parent[]):
+  while not isNil(n.parent) and lessThen(n, n.parent[]):
     swap(h, n.parent[], n)
 
 proc insert*(h: var InstruHeap, n: var InstruHeapNode) =
@@ -169,15 +169,15 @@ proc remove*(n: var InstruHeapNode) =
   else:
     n.parent.right = c
 
-  let lessThan = h.lessThan
+  let lessThen = h.lessThen
 
   while true:
     var s = c
 
-    if not isNil(c.left) and lessThan(c.left[], s[]):
+    if not isNil(c.left) and lessThen(c.left[], s[]):
       s = c.left
 
-    if not isNil(c.right) and lessThan(c.right[], s[]):
+    if not isNil(c.right) and lessThen(c.right[], s[]):
       s = c.right
 
     if s != c:
