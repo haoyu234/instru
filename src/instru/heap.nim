@@ -23,8 +23,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import std/bitops
+
 type
-  InstruLessThen = proc(a, b: var InstruHeapNode): bool {.raises: [].}
+  InstruLessThen = proc(a, b: ptr InstruHeapNode): bool {.raises: [].}
 
   InstruHeap* = object
     len: int
@@ -93,34 +95,28 @@ proc swap(h: ptr InstruHeap, a, b: ptr InstruHeapNode) {.inline.} =
     b.parent.right = b
 
 proc traverse(h: ptr InstruHeap, n: int): InstruTraverseResult {.inline.} =
-  var k: uint32 = 0
-  var path: uint32 = 0
-
-  var num = uint32(n)
-  while num >= 2:
-    path = (path shl 1) or (num and 0x1)
-    num = num shr 1
-    inc k
-
   var c = h.top.addr
-  var p = h.top
+  var p = default(ptr InstruHeapNode)
 
-  while k > 0:
-    p = c[]
-    if (path and 0x1) > 0:
-      c = c[].right.addr
-    else:
-      c = c[].left.addr
+  if n >= 2:
+    var count = sizeof(n) * 8 - countLeadingZeroBits(n) - 1
+    while count > 0:
+      dec count
 
-    path = path shr 1
-    dec k
+      p = c[]
+
+      let mask = 1 shl count
+      if (n and mask) > 0:
+        c = c.right.addr
+      else:
+        c = c.left.addr
 
   InstruTraverseResult(parentAddr: p, nodeAddr: c)
 
 proc shiftUp(h: ptr InstruHeap, n: ptr InstruHeapNode) {.inline.} =
   let lessThen = h.lessThen
 
-  while not isNil(n.parent) and lessThen(n[], n.parent[]):
+  while not isNil(n.parent) and lessThen(n, n.parent):
     swap(h, n.parent, n)
 
 proc insert*(h: var InstruHeap, n: var InstruHeapNode) =
@@ -174,10 +170,10 @@ proc remove*(n: var InstruHeapNode) =
   while true:
     var s = c
 
-    if not isNil(c.left) and lessThen(c.left[], s[]):
+    if not isNil(c.left) and lessThen(c.left, s):
       s = c.left
 
-    if not isNil(c.right) and lessThen(c.right[], s[]):
+    if not isNil(c.right) and lessThen(c.right, s):
       s = c.right
 
     if s != c:

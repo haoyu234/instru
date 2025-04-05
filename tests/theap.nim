@@ -27,9 +27,9 @@ template newJob(id: int, body: untyped): ptr Job =
 proc initHeap(h: var InstruHeap) =
   initEmpty(
     h,
-    proc(a, b: var InstruHeapNode): bool =
-      let aa = containerOf(a.addr, Job, instruHeap)
-      let bb = containerOf(b.addr, Job, instruHeap)
+    proc(a, b: ptr InstruHeapNode): bool =
+      let aa = containerOf(a, Job, instruHeap)
+      let bb = containerOf(b, Job, instruHeap)
       aa.priority < bb.priority
   )
 
