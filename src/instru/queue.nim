@@ -39,11 +39,11 @@ template next*(h: InstruQueueNode): ptr InstruQueueNode =
 template prev*(h: InstruQueueNode): ptr InstruQueueNode =
   h.prev
 
-template isEmpty*(h: var InstruQueue): bool =
-  InstruQueueNode(h).isEmpty()
-
 template isEmpty*(h: var InstruQueueNode): bool =
   h.next.isNil or h.addr == h.next
+
+template isEmpty*(h: var InstruQueue): bool =
+  InstruQueueNode(h).isEmpty()
 
 proc initEmpty*(h: var InstruQueue) {.inline.} =
   h.next = InstruQueueNode(h).addr
